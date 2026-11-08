@@ -2,7 +2,7 @@
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
-    <title>Advanced Cricket Match Predictor</title>
+    <title>Ultimate Cricket Match Predictor & Value Bet</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 20px; }
         .container { max-width: 1200px; margin: 0 auto; }
@@ -17,9 +17,9 @@
         button:hover { background: #0369a1; }
         .btn-add { margin-top: 5px; background: #10b981; }
         .btn-add:hover { background: #059669; }
-        .player-list { max-height: 300px; overflow-y: auto; margin-top: 10px; padding-right: 5px; }
+        .player-list { max-height: 250px; overflow-y: auto; margin-top: 10px; padding-right: 5px; }
         .player-row { display: flex; justify-content: space-between; align-items: center; background: #334155; padding: 6px 12px; margin-bottom: 6px; border-radius: 4px; font-size: 0.85em; }
-        .btn-del { margin: 0; padding: 2px 8px; width: auto; background: #ef4444; border-radius: 4px; }
+        .btn-del { margin: 0; padding: 2px 8px; width: auto; background: #ef4444; border-radius: 4px; cursor: pointer; }
         .btn-del:hover { background: #dc2626; }
         .result-box { display: flex; justify-content: space-around; text-align: center; margin-top: 15px; }
         .stat-card { background: #0f172a; padding: 15px; border-radius: 8px; width: 45%; }
@@ -33,12 +33,12 @@
 <body>
 
 <div class="container">
-    <h1>🏏 Pro Cricket Match Predictor (11 Player Squads)</h1>
+    <h1>🏏 Cricket Match Predictor & HowStat Integrator</h1>
 
     <div class="grid">
-        <!-- MECCS & HELYSZÍN KERESŐ -->
+        <!-- MECCS & HELYSZÍN -->
         <div class="card full-width">
-            <h2>1. Meccs & Helyszín (Venue Search)</h2>
+            <h2>1. Meccs & Helyszín Beállítás</h2>
             <div style="display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 15px;">
                 <div>
                     <label>Formátum</label>
@@ -48,21 +48,21 @@
                     </select>
                 </div>
                 <div>
-                    <label>Pálya / Helyszín Kereső (Írj be egy nevet)</label>
-                    <input type="text" id="venueSearch" list="venueOptions" placeholder="Írd be pl: Kensington Oval, MCG..." oninput="onVenueSelect()">
+                    <label>Stadion / Venue Kereső (Írd be vagy válassz)</label>
+                    <input type="text" id="venueSearch" list="venueOptions" placeholder="pl. Kensington Oval, Lord's, MCG..." oninput="onVenueSelect()">
                     <datalist id="venueOptions"></datalist>
                 </div>
                 <div>
                     <label>Időjárás / Pálya Állapot</label>
                     <select id="weatherFactor">
                         <option value="normal">Átlagos / Tiszta idő</option>
-                        <option value="overcast">Felhős (Kedvez a Swing dobóknak)</option>
-                        <option value="dry">Száraz / Repedezett (Kedvez a Spin dobóknak)</option>
+                        <option value="overcast">Felhős (Swing dobóknak kedvez)</option>
+                        <option value="dry">Száraz / Repedezett (Spin dobóknak kedvez)</option>
                     </select>
                 </div>
             </div>
             <div id="venueDescription" class="venue-info">
-                Kiválasztott pálya adatai itt jelennek meg...
+                Pálya adatai betöltve...
             </div>
         </div>
 
@@ -70,13 +70,13 @@
         <div class="card">
             <h2>A Csapat (<span id="countA">11</span> Játékos)</h2>
             <label>Csapat Neve</label>
-            <input type="text" id="teamAName" value="England">
+            <input type="text" id="teamAName" value="India">
 
-            <label>Új Játékos Hozzáadása</label>
+            <label>Új Játékos Hozzáadása (HowStat adatok alapján)</label>
             <div style="display: flex; gap: 5px;">
-                <input type="text" id="pAName" placeholder="Név">
+                <input type="text" id="pAName" placeholder="Játékos neve">
                 <input type="number" id="pARating" placeholder="Rating (1-100)" min="1" max="100" style="width: 110px;">
-                <select id="pARole" style="width: 130px;">
+                <select id="pARole" style="width: 120px;">
                     <option value="bat">Ütő</option>
                     <option value="bowl">Dobó</option>
                     <option value="all">Mindenes</option>
@@ -91,13 +91,13 @@
         <div class="card">
             <h2>B Csapat (<span id="countB">11</span> Játékos)</h2>
             <label>Csapat Neve</label>
-            <input type="text" id="teamBName" value="Pakistan">
+            <input type="text" id="teamBName" value="Australia">
 
-            <label>Új Játékos Hozzáadása</label>
+            <label>Új Játékos Hozzáadása (HowStat adatok alapján)</label>
             <div style="display: flex; gap: 5px;">
-                <input type="text" id="pBName" placeholder="Név">
+                <input type="text" id="pBName" placeholder="Játékos neve">
                 <input type="number" id="pBRating" placeholder="Rating (1-100)" min="1" max="100" style="width: 110px;">
-                <select id="pBRole" style="width: 130px;">
+                <select id="pBRole" style="width: 120px;">
                     <option value="bat">Ütő</option>
                     <option value="bowl">Dobó</option>
                     <option value="all">Mindenes</option>
@@ -110,7 +110,7 @@
 
         <!-- PREDICTION & VALUE BET -->
         <div class="card full-width">
-            <h2>2. Becslés & Sportfogadási Érték (Value Bet)</h2>
+            <h2>2. Elemzés & Sportfogadási Érték (Value Bet)</h2>
             <button onclick="predictMatch()">BECSLÉS GENERÁLÁSA 📊</button>
 
             <div class="result-box" id="results" style="display:none; margin-top: 25px;">
@@ -145,44 +145,42 @@
 </div>
 
 <script>
-    // HELYSZÍN KERESŐ ADATBÁZIS
+    // HELYSZÍNEK ADATBÁZISA
     const venueDatabase = [
-        { name: "Kensington Oval (Bridgetown, Barbados)", batMod: 1.02, bowlMod: 1.05, desc: "Klasszikus karibi pálya. Az új labdával a dobók érvényesülnek (pace & bounce), de a jó ütők magas pontszámot érhetnek el." },
+        { name: "Kensington Oval (Bridgetown, Barbados)", batMod: 1.02, bowlMod: 1.05, desc: "Klasszikus karibi pálya. Az új labdával a dobók érvényesülnek, de a stabil ütés magas pontszámot eredményez." },
         { name: "Melbourne Cricket Ground (MCG, Ausztrália)", batMod: 1.12, bowlMod: 0.95, desc: "Hatalmas outfield, kifejezetten kedvez az ütőknek (High-scoring venue)." },
-        { name: "Wankhede Stadium (Mumbai, India)", batMod: 1.18, bowlMod: 0.90, desc: "Rövid határok, gyors outfield, kiváló ütőpálya." },
-        { name: "Lord's Cricket Ground (London, Anglia)", batMod: 0.92, bowlMod: 1.15, desc: "A 'Krikett Otthona'. Jellegzetes lejtése és zöld gyepje kifejezetten a gyors/swing dobóknak kedvez." },
-        { name: "Dubai International Stadium (UAE)", batMod: 1.00, bowlMod: 1.02, desc: "Lassabb pálya, ahol a meccs második felében a spin-dobók jutnak nagy szerephez." },
-        { name: "Eden Gardens (Kolkata, India)", batMod: 1.08, bowlMod: 1.02, desc: "Tradicionális indián pálya, kiváló ütési feltételekkel és közepes spin-támogatással." },
-        { name: "The Wanderers Stadium (Johannesburg, Dél-Afrika)", batMod: 1.15, bowlMod: 0.98, desc: "Magaslati pálya, ahol a labda gyorsabban repül, magas futásszámok várhatók." }
+        { name: "Wankhede Stadium (Mumbai, India)", batMod: 1.18, bowlMod: 0.90, desc: "Rövid határok, kiváló ütőpálya, esti harmatfaktorral." },
+        { name: "Lord's Cricket Ground (London, Anglia)", batMod: 0.92, bowlMod: 1.15, desc: "A 'Krikett Otthona'. Jellegzetes lejtése a gyors/swing dobóknak kedvez." },
+        { name: "Dubai International Stadium (UAE)", batMod: 1.00, bowlMod: 1.02, desc: "Lassabb pálya, a meccs második felében a spin-dobók dominálnak." }
     ];
 
-    // ALAPÉRTELMEZETT 11 FŐS CSAPATOK
+    // KEZDETI CSAPATOK (11 fős keretek)
     const teams = {
         A: [
-            { name: "Jos Buttler", rating: 91, role: "bat" },
-            { name: "Phil Salt", rating: 88, role: "bat" },
-            { name: "Will Jacks", rating: 85, role: "bat" },
-            { name: "Harry Brook", rating: 89, role: "bat" },
-            { name: "Liam Livingstone", rating: 86, role: "all" },
-            { name: "Moeen Ali", rating: 84, role: "all" },
-            { name: "Sam Curran", rating: 86, role: "all" },
-            { name: "Adil Rashid", rating: 90, role: "bowl" },
-            { name: "Jofra Archer", rating: 91, role: "bowl" },
-            { name: "Mark Wood", rating: 88, role: "bowl" },
-            { name: "Reece Topley", rating: 84, role: "bowl" }
+            { name: "Rohit Sharma", rating: 89, role: "bat" },
+            { name: "Virat Kohli", rating: 93, role: "bat" },
+            { name: "Suryakumar Yadav", rating: 91, role: "bat" },
+            { name: "Yashasvi Jaiswal", rating: 87, role: "bat" },
+            { name: "Rishabh Pant", rating: 88, role: "bat" },
+            { name: "Hardik Pandya", rating: 88, role: "all" },
+            { name: "Ravindra Jadeja", rating: 87, role: "all" },
+            { name: "Jasprit Bumrah", rating: 95, role: "bowl" },
+            { name: "Kuldeep Yadav", rating: 88, role: "bowl" },
+            { name: "Arshdeep Singh", rating: 85, role: "bowl" },
+            { name: "Mohammed Siraj", rating: 86, role: "bowl" }
         ],
         B: [
-            { name: "Babar Azam", rating: 91, role: "bat" },
-            { name: "Mohammad Rizwan", rating: 89, role: "bat" },
-            { name: "Fakhar Zaman", rating: 85, role: "bat" },
-            { name: "Usman Khan", rating: 81, role: "bat" },
-            { name: "Iftikhar Ahmed", rating: 83, role: "all" },
-            { name: "Imad Wasim", rating: 84, role: "all" },
-            { name: "Shadab Khan", rating: 85, role: "all" },
-            { name: "Shaheen Afridi", rating: 92, role: "bowl" },
-            { name: "Naseem Shah", rating: 89, role: "bowl" },
-            { name: "Haris Rauf", rating: 88, role: "bowl" },
-            { name: "Mohammad Amir", rating: 86, role: "bowl" }
+            { name: "Travis Head", rating: 90, role: "bat" },
+            { name: "David Warner", rating: 88, role: "bat" },
+            { name: "Mitchell Marsh", rating: 86, role: "all" },
+            { name: "Steve Smith", rating: 89, role: "bat" },
+            { name: "Glenn Maxwell", rating: 87, role: "all" },
+            { name: "Marcus Stoinis", rating: 85, role: "all" },
+            { name: "Matthew Wade", rating: 84, role: "bat" },
+            { name: "Pat Cummins", rating: 92, role: "bowl" },
+            { name: "Mitchell Starc", rating: 91, role: "bowl" },
+            { name: "Adam Zampa", rating: 89, role: "bowl" },
+            { name: "Josh Hazlewood", rating: 90, role: "bowl" }
         ]
     };
 
@@ -206,7 +204,7 @@
             document.getElementById('venueDescription').innerText = `Pálya adatai: ${match.desc}`;
         } else {
             selectedVenue = { name: val, batMod: 1.0, bowlMod: 1.0, desc: "Egyéni pálya - Átlagos feltételek." };
-            document.getElementById('venueDescription').innerText = "Egyéni pálya feltételezve (Átlagos ütő/dobó arány).";
+            document.getElementById('venueDescription').innerText = "Egyéni pálya feltételezve (Standard feltételek).";
         }
     }
 
@@ -239,6 +237,8 @@
             document.getElementById(`p${team}Name`).value = '';
             document.getElementById(`p${team}Rating`).value = '';
             renderPlayers();
+        } else {
+            alert("Kérlek add meg a játékos nevét és ratingjét!");
         }
     }
 
@@ -252,7 +252,7 @@
 
     function predictMatch() {
         if (teams.A.length === 0 || teams.B.length === 0) {
-            alert("Mindkét csapatba vegyél fel legalább egy játékost!");
+            alert("Mindkét csapatba szükséges legalább 1 játékos!");
             return;
         }
 
@@ -265,79 +265,9 @@
         document.getElementById('resTeamAName').innerText = nameA;
         document.getElementById('resTeamBName').innerText = nameB;
 
-        // Statisztikai átlagolás (All-rounderek mindkét kategóriába beleszámítanak)
         const getStats = (list) => {
             const bats = list.filter(p => p.role === 'bat' || p.role === 'all');
             const bowls = list.filter(p => p.role === 'bowl' || p.role === 'all');
 
             const avgBat = bats.length ? bats.reduce((a, b) => a + b.rating, 0) / bats.length : 70;
-            const avgBowl = bowls.length ? bowls.reduce((a, b) => a + b.rating, 0) / bowls.length : 70;
-            return { avgBat, avgBowl };
-        };
-
-        const statsA = getStats(teams.A);
-        const statsB = getStats(teams.B);
-
-        // Időjárás módosítók
-        let weatherBowlMod = 1.0;
-        if (weather === 'overcast') weatherBowlMod = 1.08;
-        if (weather === 'dry') weatherBowlMod = 1.05;
-
-        const totalBatMod = selectedVenue.batMod;
-        const totalBowlMod = selectedVenue.bowlMod * weatherBowlMod;
-
-        // Csapatok Erősségi Mutatója
-        const powerA = (statsA.avgBat * totalBatMod) - (statsB.avgBowl * totalBowlMod);
-        const powerB = (statsB.avgBat * totalBatMod) - (statsA.avgBowl * totalBowlMod);
-
-        const diff = powerA - powerB;
-        currentProbA = Math.round(1 / (1 + Math.pow(10, -diff / 30)) * 100);
-        currentProbB = 100 - currentProbA;
-
-        // Várható pontszám (Futások)
-        const baseRuns = format === 'T20' ? 165 : 275;
-        const runsA = Math.round(baseRuns + (powerA * 1.4));
-        const runsB = Math.round(baseRuns + (powerB * 1.4));
-
-        document.getElementById('probA').innerText = `${currentProbA}%`;
-        document.getElementById('probB').innerText = `${currentProbB}%`;
-        document.getElementById('runsA').innerText = runsA;
-        document.getElementById('runsB').innerText = runsB;
-
-        document.getElementById('results').style.display = 'flex';
-        checkValueBet();
-    }
-
-    function checkValueBet() {
-        const oddsA = parseFloat(document.getElementById('oddsA').value);
-        const oddsB = parseFloat(document.getElementById('oddsB').value);
-
-        if (oddsA && currentProbA) {
-            const impliedProbA = (1 / oddsA) * 100;
-            const marginA = currentProbA - impliedProbA;
-            const elA = document.getElementById('valueA');
-            if (marginA > 2.5) {
-                elA.innerHTML = `<span class="value-tag value-yes">VALUE BET (+${marginA.toFixed(1)}%)</span>`;
-            } else {
-                elA.innerHTML = `<span class="value-tag value-no">Nincs Érték</span>`;
-            }
-        }
-
-        if (oddsB && currentProbB) {
-            const impliedProbB = (1 / oddsB) * 100;
-            const marginB = currentProbB - impliedProbB;
-            const elB = document.getElementById('valueB');
-            if (marginB > 2.5) {
-                elB.innerHTML = `<span class="value-tag value-yes">VALUE BET (+${marginB.toFixed(1)}%)</span>`;
-            } else {
-                elB.innerHTML = `<span class="value-tag value-no">Nincs Érték</span>`;
-            }
-        }
-    }
-
-    // Inicializálás betöltéskor
-    initVenueSearch();
-    renderPlayers();
-</script>
-</body>
-</html>
+            const avgBowl = bowls.length ? bowls.reduce((a, b) => a + b.rating, 0) / bowls
