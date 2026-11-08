@@ -228,17 +228,21 @@
     }
 
     function addPlayer(team) {
-        const name = document.getElementById(`p${team}Name`).value;
-        const rating = parseInt(document.getElementById(`p${team}Rating`).value);
-        const role = document.getElementById(`p${team}Role`).value;
+        const nameInput = document.getElementById(`p${team}Name`);
+        const ratingInput = document.getElementById(`p${team}Rating`);
+        const roleInput = document.getElementById(`p${team}Role`);
 
-        if (name && rating) {
+        const name = nameInput.value.trim();
+        const rating = parseInt(ratingInput.value);
+        const role = roleInput.value;
+
+        if (name && !isNaN(rating)) {
             teams[team].push({ name, rating, role });
-            document.getElementById(`p${team}Name`).value = '';
-            document.getElementById(`p${team}Rating`).value = '';
+            nameInput.value = '';
+            ratingInput.value = '';
             renderPlayers();
         } else {
-            alert("Kérlek add meg a játékos nevét és ratingjét!");
+            alert("Kérlek add meg a játékos nevét és egy érvényes rating számot!");
         }
     }
 
@@ -270,4 +274,76 @@
             const bowls = list.filter(p => p.role === 'bowl' || p.role === 'all');
 
             const avgBat = bats.length ? bats.reduce((a, b) => a + b.rating, 0) / bats.length : 70;
-            const avgBowl = bowls.length ? bowls.reduce((a, b) => a + b.rating, 0) / bowls
+            const avgBowl = bowls.length ? bowls.reduce((a, b) => a + b.rating, 0) / bowls.length : 70;
+            return { avgBat, avgBowl };
+        };
+
+        const statsA = getStats(teams.A);
+        const statsB = getStats(teams.B);
+
+        let weatherBowlMod = 1.0;
+        if (weather === 'overcast') weatherBowlMod = 1.08;
+        if (weather === 'dry') weatherBowlMod = 1.05;
+
+        const totalBatMod = selectedVenue.batMod;
+        const totalBowlMod = selectedVenue.bowlMod * weatherBowlMod;
+
+        const powerA = (statsA.avgBat * totalBatMod) - (statsB.avgBowl * totalBowlMod);
+        const powerB = (statsB.avgBat * totalBatMod) - (statsA.avgBowl * totalBowlMod);
+
+        const diff = powerA - powerB;
+        currentProbA = Math.round(1 / (1 + Math.pow(10, -diff / 30)) * 100);
+        currentProbB = 100 - currentProbA;
+
+        const baseRuns = format === 'T20' ? 165 : 275;
+        const runsA = Math.round(baseRuns + (powerA * 1.4));
+        const runsB = Math.round(baseRuns + (powerB * 1.4));
+
+        document.getElementById('probA').innerText = `${currentProbA}%`;
+        document.getElementById('probB').innerText = `${currentProbB}%`;
+        document.getElementById('runsA').innerText = runsA;
+        document.getElementById('runsB').innerText = runsB;
+
+        document.getElementById('results').style.display = 'flex';
+        checkValueBet();
+    }
+
+    function checkValueBet() {
+        const oddsA = parseFloat(document.getElementById('oddsA').value);
+        const oddsB = parseFloat(document.getElementById('oddsB').value);
+
+        if (!isNaN(oddsA) && currentProbA) {
+            const impliedProbA = (1 / oddsA) * 100;
+            const marginA = currentProbA - impliedProbA;
+            const elA = document.getElementById('valueA');
+            if (marginA > 2.5) {
+                elA.innerHTML = `<span class="value-tag value-yes">VALUE BET (+${marginA.toFixed(1)}%)</span>`;
+            } else {
+                elA.innerHTML = `<span class="value-tag value-no">Nincs Érték</span>`;
+            }
+        } else {
+            document.getElementById('valueA').innerHTML = '';
+        }
+
+        if (!isNaN(oddsB) && currentProbB) {
+            const impliedProbB = (1 / oddsB) * 100;
+            const marginB = currentProbB - impliedProbB;
+            const elB = document.getElementById('valueB');
+            if (marginB > 2.5) {
+                elB.innerHTML = `<span class="value-tag value-yes">VALUE BET (+${marginB.toFixed(1)}%)</span>`;
+            } else {
+                elB.innerHTML = `<span class="value-tag value-no">Nincs Érték</span>`;
+            }
+        } else {
+            document.getElementById('valueB').innerHTML = '';
+        }
+    }
+
+    // Inicializálás az oldal betöltésekor
+    window.onload = function() {
+        initVenueSearch();
+        renderPlayers();
+    };
+</script>
+</body>
+</html>
