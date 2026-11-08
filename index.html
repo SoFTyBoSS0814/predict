@@ -2,7 +2,7 @@
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
-    <title>Ultimate Cricket Match Predictor & Value Bet</title>
+    <title>Cricket Match Predictor - Database Edition</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 20px; }
         .container { max-width: 1200px; margin: 0 auto; }
@@ -17,7 +17,7 @@
         button:hover { background: #0369a1; }
         .btn-add { margin-top: 5px; background: #10b981; }
         .btn-add:hover { background: #059669; }
-        .player-list { max-height: 250px; overflow-y: auto; margin-top: 10px; padding-right: 5px; }
+        .player-list { max-height: 280px; overflow-y: auto; margin-top: 10px; padding-right: 5px; }
         .player-row { display: flex; justify-content: space-between; align-items: center; background: #334155; padding: 6px 12px; margin-bottom: 6px; border-radius: 4px; font-size: 0.85em; }
         .btn-del { margin: 0; padding: 2px 8px; width: auto; background: #ef4444; border-radius: 4px; cursor: pointer; }
         .btn-del:hover { background: #dc2626; }
@@ -33,12 +33,12 @@
 <body>
 
 <div class="container">
-    <h1>🏏 Cricket Match Predictor & HowStat Integrator</h1>
+    <h1>🏏 Krikett Meccs Becslő & Adatbázis</h1>
 
     <div class="grid">
         <!-- MECCS & HELYSZÍN -->
         <div class="card full-width">
-            <h2>1. Meccs & Helyszín Beállítás</h2>
+            <h2>1. Meccs & Helyszín Kereső</h2>
             <div style="display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 15px;">
                 <div>
                     <label>Formátum</label>
@@ -48,8 +48,8 @@
                     </select>
                 </div>
                 <div>
-                    <label>Stadion / Venue Kereső (Írd be vagy válassz)</label>
-                    <input type="text" id="venueSearch" list="venueOptions" placeholder="pl. Kensington Oval, Lord's, MCG..." oninput="onVenueSelect()">
+                    <label>Stadion / Venue Kereső (Írd be a nevet)</label>
+                    <input type="text" id="venueSearch" list="venueOptions" placeholder="pl. Kensington Oval, Lord's..." oninput="onVenueSelect()">
                     <datalist id="venueOptions"></datalist>
                 </div>
                 <div>
@@ -68,15 +68,20 @@
 
         <!-- CSAPAT A -->
         <div class="card">
-            <h2>A Csapat (<span id="countA">11</span> Játékos)</h2>
-            <label>Csapat Neve</label>
-            <input type="text" id="teamAName" value="India">
+            <h2>A Csapat (Hazai)</h2>
+            <label>Válassz Csapatot az Adatbázisból</label>
+            <select id="teamASelect" onchange="loadTeamFromDB('A')">
+                <option value="india">India</option>
+                <option value="australia">Australia</option>
+                <option value="england">England</option>
+                <option value="pakistan">Pakistan</option>
+            </select>
 
-            <label>Új Játékos Hozzáadása (HowStat adatok alapján)</label>
+            <label style="margin-top: 15px;">Játékos hozzáadása / cseréje (opcionális)</label>
             <div style="display: flex; gap: 5px;">
-                <input type="text" id="pAName" placeholder="Játékos neve">
-                <input type="number" id="pARating" placeholder="Rating (1-100)" min="1" max="100" style="width: 110px;">
-                <select id="pARole" style="width: 120px;">
+                <input type="text" id="pAName" placeholder="Név">
+                <input type="number" id="pARating" placeholder="Rating (1-100)" min="1" max="100" style="width: 90px;">
+                <select id="pARole" style="width: 100px;">
                     <option value="bat">Ütő</option>
                     <option value="bowl">Dobó</option>
                     <option value="all">Mindenes</option>
@@ -89,15 +94,20 @@
 
         <!-- CSAPAT B -->
         <div class="card">
-            <h2>B Csapat (<span id="countB">11</span> Játékos)</h2>
-            <label>Csapat Neve</label>
-            <input type="text" id="teamBName" value="Australia">
+            <h2>B Csapat (Vendég)</h2>
+            <label>Válassz Csapatot az Adatbázisból</label>
+            <select id="teamBSelect" onchange="loadTeamFromDB('B')">
+                <option value="india">India</option>
+                <option value="australia" selected>Australia</option>
+                <option value="england">England</option>
+                <option value="pakistan">Pakistan</option>
+            </select>
 
-            <label>Új Játékos Hozzáadása (HowStat adatok alapján)</label>
+            <label style="margin-top: 15px;">Játékos hozzáadása / cseréje (opcionális)</label>
             <div style="display: flex; gap: 5px;">
-                <input type="text" id="pBName" placeholder="Játékos neve">
-                <input type="number" id="pBRating" placeholder="Rating (1-100)" min="1" max="100" style="width: 110px;">
-                <select id="pBRole" style="width: 120px;">
+                <input type="text" id="pBName" placeholder="Név">
+                <input type="number" id="pBRating" placeholder="Rating (1-100)" min="1" max="100" style="width: 90px;">
+                <select id="pBRole" style="width: 100px;">
                     <option value="bat">Ütő</option>
                     <option value="bowl">Dobó</option>
                     <option value="all">Mindenes</option>
@@ -145,48 +155,93 @@
 </div>
 
 <script>
-    // HELYSZÍNEK ADATBÁZISA
+    // 1. HELYSZÍNEK ADATBÁZISA
     const venueDatabase = [
-        { name: "Kensington Oval (Bridgetown, Barbados)", batMod: 1.02, bowlMod: 1.05, desc: "Klasszikus karibi pálya. Az új labdával a dobók érvényesülnek, de a stabil ütés magas pontszámot eredményez." },
+        { name: "Kensington Oval (Bridgetown, Barbados)", batMod: 1.02, bowlMod: 1.05, desc: "Klasszikus karibi pálya. Új labdával a dobók érvényesülnek, de a stabil ütés magas pontszámot eredményez." },
         { name: "Melbourne Cricket Ground (MCG, Ausztrália)", batMod: 1.12, bowlMod: 0.95, desc: "Hatalmas outfield, kifejezetten kedvez az ütőknek (High-scoring venue)." },
         { name: "Wankhede Stadium (Mumbai, India)", batMod: 1.18, bowlMod: 0.90, desc: "Rövid határok, kiváló ütőpálya, esti harmatfaktorral." },
         { name: "Lord's Cricket Ground (London, Anglia)", batMod: 0.92, bowlMod: 1.15, desc: "A 'Krikett Otthona'. Jellegzetes lejtése a gyors/swing dobóknak kedvez." },
         { name: "Dubai International Stadium (UAE)", batMod: 1.00, bowlMod: 1.02, desc: "Lassabb pálya, a meccs második felében a spin-dobók dominálnak." }
     ];
 
-    // KEZDETI CSAPATOK (11 fős keretek)
-    const teams = {
-        A: [
-            { name: "Rohit Sharma", rating: 89, role: "bat" },
-            { name: "Virat Kohli", rating: 93, role: "bat" },
-            { name: "Suryakumar Yadav", rating: 91, role: "bat" },
-            { name: "Yashasvi Jaiswal", rating: 87, role: "bat" },
-            { name: "Rishabh Pant", rating: 88, role: "bat" },
-            { name: "Hardik Pandya", rating: 88, role: "all" },
-            { name: "Ravindra Jadeja", rating: 87, role: "all" },
-            { name: "Jasprit Bumrah", rating: 95, role: "bowl" },
-            { name: "Kuldeep Yadav", rating: 88, role: "bowl" },
-            { name: "Arshdeep Singh", rating: 85, role: "bowl" },
-            { name: "Mohammed Siraj", rating: 86, role: "bowl" }
-        ],
-        B: [
-            { name: "Travis Head", rating: 90, role: "bat" },
-            { name: "David Warner", rating: 88, role: "bat" },
-            { name: "Mitchell Marsh", rating: 86, role: "all" },
-            { name: "Steve Smith", rating: 89, role: "bat" },
-            { name: "Glenn Maxwell", rating: 87, role: "all" },
-            { name: "Marcus Stoinis", rating: 85, role: "all" },
-            { name: "Matthew Wade", rating: 84, role: "bat" },
-            { name: "Pat Cummins", rating: 92, role: "bowl" },
-            { name: "Mitchell Starc", rating: 91, role: "bowl" },
-            { name: "Adam Zampa", rating: 89, role: "bowl" },
-            { name: "Josh Hazlewood", rating: 90, role: "bowl" }
-        ]
+    // 2. CSAPATOK ÉS 11 FŐS KERETEK ADATBÁZISA (Hivatalos statisztikák alapján)
+    const teamsDatabase = {
+        india: {
+            name: "India",
+            players: [
+                { name: "Rohit Sharma", rating: 89, role: "bat" },
+                { name: "Virat Kohli", rating: 93, role: "bat" },
+                { name: "Suryakumar Yadav", rating: 91, role: "bat" },
+                { name: "Yashasvi Jaiswal", rating: 87, role: "bat" },
+                { name: "Rishabh Pant", rating: 88, role: "bat" },
+                { name: "Hardik Pandya", rating: 88, role: "all" },
+                { name: "Ravindra Jadeja", rating: 87, role: "all" },
+                { name: "Jasprit Bumrah", rating: 95, role: "bowl" },
+                { name: "Kuldeep Yadav", rating: 88, role: "bowl" },
+                { name: "Arshdeep Singh", rating: 85, role: "bowl" },
+                { name: "Mohammed Siraj", rating: 86, role: "bowl" }
+            ]
+        },
+        australia: {
+            name: "Australia",
+            players: [
+                { name: "Travis Head", rating: 90, role: "bat" },
+                { name: "David Warner", rating: 88, role: "bat" },
+                { name: "Mitchell Marsh", rating: 86, role: "all" },
+                { name: "Steve Smith", rating: 89, role: "bat" },
+                { name: "Glenn Maxwell", rating: 87, role: "all" },
+                { name: "Marcus Stoinis", rating: 85, role: "all" },
+                { name: "Matthew Wade", rating: 84, role: "bat" },
+                { name: "Pat Cummins", rating: 92, role: "bowl" },
+                { name: "Mitchell Starc", rating: 91, role: "bowl" },
+                { name: "Adam Zampa", rating: 89, role: "bowl" },
+                { name: "Josh Hazlewood", rating: 90, role: "bowl" }
+            ]
+        },
+        england: {
+            name: "England",
+            players: [
+                { name: "Jos Buttler", rating: 91, role: "bat" },
+                { name: "Phil Salt", rating: 89, role: "bat" },
+                { name: "Will Jacks", rating: 85, role: "bat" },
+                { name: "Harry Brook", rating: 88, role: "bat" },
+                { name: "Liam Livingstone", rating: 86, role: "all" },
+                { name: "Moeen Ali", rating: 84, role: "all" },
+                { name: "Sam Curran", rating: 86, role: "all" },
+                { name: "Adil Rashid", rating: 90, role: "bowl" },
+                { name: "Jofra Archer", rating: 91, role: "bowl" },
+                { name: "Mark Wood", rating: 88, role: "bowl" },
+                { name: "Reece Topley", rating: 84, role: "bowl" }
+            ]
+        },
+        pakistan: {
+            name: "Pakistan",
+            players: [
+                { name: "Babar Azam", rating: 90, role: "bat" },
+                { name: "Mohammad Rizwan", rating: 89, role: "bat" },
+                { name: "Fakhar Zaman", rating: 85, role: "bat" },
+                { name: "Usman Khan", rating: 81, role: "bat" },
+                { name: "Iftikhar Ahmed", rating: 83, role: "all" },
+                { name: "Imad Wasim", rating: 84, role: "all" },
+                { name: "Shadab Khan", rating: 85, role: "all" },
+                { name: "Shaheen Afridi", rating: 92, role: "bowl" },
+                { name: "Naseem Shah", rating: 88, role: "bowl" },
+                { name: "Haris Rauf", rating: 87, role: "bowl" },
+                { name: "Mohammad Amir", rating: 86, role: "bowl" }
+            ]
+        }
+    };
+
+    // Aktuális aktív keretek a memóriában
+    let activeTeams = {
+        A: [],
+        B: []
     };
 
     let selectedVenue = venueDatabase[0];
 
-    function initVenueSearch() {
+    function initApp() {
+        // Venue datalist feltöltése
         const datalist = document.getElementById('venueOptions');
         datalist.innerHTML = '';
         venueDatabase.forEach(v => {
@@ -194,6 +249,10 @@
         });
         document.getElementById('venueSearch').value = venueDatabase[0].name;
         onVenueSelect();
+
+        // Kezdeti csapatok betöltése az adatbázisból
+        loadTeamFromDB('A');
+        loadTeamFromDB('B');
     }
 
     function onVenueSelect() {
@@ -208,54 +267,60 @@
         }
     }
 
-    function renderPlayers() {
-        ['A', 'B'].forEach(t => {
-            const listEl = document.getElementById(`team${t}List`);
-            const countEl = document.getElementById(`count${t}`);
-            listEl.innerHTML = '';
-            countEl.innerText = teams[t].length;
+    function loadTeamFromDB(side) {
+        const selectId = side === 'A' ? 'teamASelect' : 'teamBSelect';
+        const teamKey = document.getElementById(selectId).value;
+        const dbTeam = teamsDatabase[teamKey];
 
-            teams[t].forEach((p, i) => {
-                let roleTxt = p.role === 'bat' ? 'Ütő' : (p.role === 'bowl' ? 'Dobó' : 'Mindenes');
-                listEl.innerHTML += `
-                    <div class="player-row">
-                        <span><b>${p.name}</b> (${roleTxt})</span>
-                        <span>Rating: ${p.rating} <button onclick="removePlayer('${t}', ${i})" class="btn-del">x</button></span>
-                    </div>
-                `;
-            });
+        // Mélymásolat, hogy a szerkesztés ne rontsa el az eredeti adatbázist
+        activeTeams[side] = JSON.parse(JSON.stringify(dbTeam.players));
+        renderPlayers(side);
+    }
+
+    function renderPlayers(side) {
+        const listEl = document.getElementById(`team${side}List`);
+        listEl.innerHTML = '';
+
+        activeTeams[side].forEach((p, i) => {
+            let roleTxt = p.role === 'bat' ? 'Ütő' : (p.role === 'bowl' ? 'Dobó' : 'Mindenes');
+            listEl.innerHTML += `
+                <div class="player-row">
+                    <span><b>${p.name}</b> (${roleTxt})</span>
+                    <span>Rating: ${p.rating} <button onclick="removePlayer('${side}', ${i})" class="btn-del">x</button></span>
+                </div>
+            `;
         });
     }
 
-    function addPlayer(team) {
-        const nameInput = document.getElementById(`p${team}Name`);
-        const ratingInput = document.getElementById(`p${team}Rating`);
-        const roleInput = document.getElementById(`p${team}Role`);
+    function addPlayer(side) {
+        const nameInput = document.getElementById(`p${side}Name`);
+        const ratingInput = document.getElementById(`p${side}Rating`);
+        const roleInput = document.getElementById(`p${side}Role`);
 
         const name = nameInput.value.trim();
         const rating = parseInt(ratingInput.value);
         const role = roleInput.value;
 
         if (name && !isNaN(rating)) {
-            teams[team].push({ name, rating, role });
+            activeTeams[side].push({ name, rating, role });
             nameInput.value = '';
             ratingInput.value = '';
-            renderPlayers();
+            renderPlayers(side);
         } else {
             alert("Kérlek add meg a játékos nevét és egy érvényes rating számot!");
         }
     }
 
-    function removePlayer(team, index) {
-        teams[team].splice(index, 1);
-        renderPlayers();
+    function removePlayer(side, index) {
+        activeTeams[side].splice(index, 1);
+        renderPlayers(side);
     }
 
     let currentProbA = 0;
     let currentProbB = 0;
 
     function predictMatch() {
-        if (teams.A.length === 0 || teams.B.length === 0) {
+        if (activeTeams.A.length === 0 || activeTeams.B.length === 0) {
             alert("Mindkét csapatba szükséges legalább 1 játékos!");
             return;
         }
@@ -263,8 +328,11 @@
         const format = document.getElementById('matchFormat').value;
         const weather = document.getElementById('weatherFactor').value;
 
-        const nameA = document.getElementById('teamAName').value || "A Csapat";
-        const nameB = document.getElementById('teamBName').value || "B Csapat";
+        const teamAKey = document.getElementById('teamASelect').value;
+        const teamBKey = document.getElementById('teamBSelect').value;
+
+        const nameA = teamsDatabase[teamAKey].name;
+        const nameB = teamsDatabase[teamBKey].name;
 
         document.getElementById('resTeamAName').innerText = nameA;
         document.getElementById('resTeamBName').innerText = nameB;
@@ -278,8 +346,8 @@
             return { avgBat, avgBowl };
         };
 
-        const statsA = getStats(teams.A);
-        const statsB = getStats(teams.B);
+        const statsA = getStats(activeTeams.A);
+        const statsB = getStats(activeTeams.B);
 
         let weatherBowlMod = 1.0;
         if (weather === 'overcast') weatherBowlMod = 1.08;
@@ -339,11 +407,8 @@
         }
     }
 
-    // Inicializálás az oldal betöltésekor
-    window.onload = function() {
-        initVenueSearch();
-        renderPlayers();
-    };
+    // Oldal betöltésekor indítunk
+    window.onload = initApp;
 </script>
 </body>
 </html>
